@@ -163,14 +163,25 @@ Priority uses MoSCoW: **M** must, **S** should, **C** could.
 One deployable, separate packages:
 
 ```
-myziel/
-├── profile-goals    # profile, goals, versioning
-├── checkin          # survey generation, submission, amendments
-├── scoring          # day score, streaks, pause ledger
-├── insights         # drift detection, suggestions, forecasts
-├── analytics        # dashboard queries, exports
-├── notifications    # scheduling, channels
-└── llm-gateway      # LLM client, prompts, budget, fallback
+src/myziel/
+├── main.py              # FastAPI app factory
+├── config.py            # settings from environment
+├── core/                # db, event bus, security, logging, clock
+├── modules/
+│   ├── auth/            # user, login, export, account deletion
+│   ├── profile_goals/   # profile, goals, versioning, target derivation
+│   ├── checkin/         # survey generation, submission, amendments
+│   ├── scoring/         # day score, streaks, pause ledger (pure functions)
+│   ├── insights/        # drift detection, suggestions, forecasts
+│   ├── analytics/       # calendar, dashboard queries, exports
+│   ├── notifications/   # scheduling, policy, channels/
+│   ├── llm_gateway/     # LLM client, prompts, budget, fallback
+│   └── health/          # health endpoint, metrics
+└── web/                 # Jinja2 templates + static (htmx, PWA)
+migrations/              # Alembic
+tests/unit/              # scoring, streak, pause, forecast, drift
+tests/integration/       # e.g. check-in immutability
+scripts/                 # backup and restore
 ```
 
 ### Event flow
@@ -188,10 +199,10 @@ Events go through an in-process event bus, keeping modules decoupled and making 
 
 | Layer | Choice |
 |---|---|
-| Backend | Kotlin + Spring Boot 3, as GraalVM native image or JVM with ~256 MB heap. Ktor as a lighter alternative |
-| Database | SQLite for smallest footprint, or PostgreSQL if multi-user is likely soon. Flyway migrations, repository layer to keep switching cheap |
-| Frontend | Server-rendered with htmx, or a small Svelte/React SPA served as static files. Chart.js for charts; custom calendar grid |
-| Scheduling | In-app scheduler for reminders and weekly reviews |
+| Backend | Python 3.12 + FastAPI, served by Uvicorn |
+| Database | SQLite for smallest footprint, or PostgreSQL if multi-user is likely soon. SQLAlchemy 2 + Alembic migrations, repository layer to keep switching cheap |
+| Frontend | Server-rendered Jinja2 templates with htmx. Chart.js for charts; custom calendar grid |
+| Scheduling | APScheduler in-process for reminders and weekly reviews |
 | Deployment | Single Docker container (plus Postgres if chosen) on a small VPS |
 
 ## Data model

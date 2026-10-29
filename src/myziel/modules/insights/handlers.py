@@ -1,0 +1,1 @@
+"""Reacts to CheckInSubmitted."""
