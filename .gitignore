@@ -8,3 +8,5 @@ data/
 .ruff_cache/
 .mypy_cache/
 dist/
+.coverage
+htmlcov/

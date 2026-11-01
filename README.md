@@ -4,10 +4,11 @@ A small personal web app that helps you define goals, check in daily in natural 
 
 Each check-in becomes structured, timestamped, tamper-proof data that powers a traffic-light calendar, a progress dashboard, completion forecasts and nudges when things drift.
 
-> Status: requirements v0.2 (2026-10-29). Not yet implemented.
+> Status: requirements v0.2 (2026-10-29). Phase 1 (MVP) implemented; phases 2 and 3 to do.
 
 ## Table of contents
 
+1. [Getting started](#getting-started)
 1. [Key decisions](#key-decisions)
 2. [Scope](#scope)
 3. [Glossary](#glossary)
@@ -17,6 +18,38 @@ Each check-in becomes structured, timestamped, tamper-proof data that powers a t
 7. [Data model](#data-model)
 8. [Roadmap](#roadmap)
 9. [Open questions](#open-questions)
+
+## Getting started
+
+Needs Python 3.12. On Windows: `winget install Python.Python.3.12`.
+
+```powershell
+# one-time setup (on macOS/Linux use .venv/bin/ instead of .venv/Scripts/)
+py -3.12 -m venv .venv
+.venv/Scripts/python -m pip install -e ".[dev]"
+copy .env.example .env          # then set SECRET_KEY (and SMTP_URL for email reminders)
+.venv/Scripts/alembic upgrade head
+
+# run
+.venv/Scripts/uvicorn myziel.main:app --factory --reload
+```
+
+Open http://localhost:8000. The first visit creates the single account.
+
+Tests and lint:
+
+```powershell
+.venv/Scripts/python -m pytest --cov=myziel   # unit + integration
+.venv/Scripts/ruff check src tests
+```
+
+Integration tests build each test database with the real Alembic migration and use a fixed clock,
+so check-in windows, late and missed days and reminders are tested deterministically.
+
+Docker: `docker build -t myziel . && docker run -p 8000:8000 -v myziel-data:/app/data --env-file .env myziel`
+(migrations run on start). Backups: `scripts/backup.sh` (daily via cron), restore with `scripts/restore.sh`.
+
+Email reminders: with `SMTP_URL` empty, reminders are written to the log only.
 
 ## Key decisions
 
@@ -226,18 +259,18 @@ Events go through an in-process event bus, keeping modules decoupled and making 
 
 ### Phase 1: MVP
 
-- [ ] Goals and profile with versioning
-- [ ] Structured check-in with free-text field, immutable storage
-- [ ] Day score, traffic light, calendar view
-- [ ] Basic weekly chart
-- [ ] Email reminder
+- [x] Goals and profile with versioning
+- [x] Structured check-in with free-text field, immutable storage
+- [x] Day score, traffic light, calendar view
+- [x] Basic weekly chart
+- [x] Email reminder
 
 ### Phase 2: Intelligence
 
 - [ ] Natural language extraction with confirmation step
-- [ ] Streaks and pause credit ledger
-- [ ] Completion forecast
-- [ ] Drift detection and alerts
+- [ ] Streaks and pause credit ledger (logic and tests done; streaks on dashboard; ledger to do)
+- [ ] Completion forecast (logic and tests done, not shown in UI yet)
+- [ ] Drift detection and alerts (logic and tests done, not wired up yet)
 - [ ] Web push, PWA
 
 ### Phase 3: Learning and polish

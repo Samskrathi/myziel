@@ -1,0 +1,40 @@
+{% extends "base.html" %}
+{% block title %}Calendar · myZiel{% endblock %}
+{% block content %}
+<h1>Calendar</h1>
+<div class="actions" style="margin-bottom:12px">
+  <a class="button secondary" href="/calendar?end={{ prev }}&mode={{ mode }}">← Earlier</a>
+  {% if next %}<a class="button secondary" href="/calendar?end={{ next }}&mode={{ mode }}">Later →</a>{% endif %}
+  <a class="button secondary" href="/calendar?end={{ end }}&mode={{ 'self' if mode == 'score' else 'score' }}">
+    Show {{ 'self-rating' if mode == 'score' else 'computed score' }}</a>
+</div>
+<div class="legend card">
+  {% for s in ['green', 'amber', 'red', 'grey', 'none', 'pending'] %}
+  <span><span class="dot state-{{ s }}">{{ ICONS[s] }}</span>{{ LABELS[s] }}</span>
+  {% endfor %}
+</div>
+{% for m in months %}
+<div class="card">
+  <h2>{{ m.title }}</h2>
+  <table class="cal">
+    <tr>{% for wd in ['Mon','Tue','Wed','Thu','Fri','Sat','Sun'] %}<th>{{ wd }}</th>{% endfor %}</tr>
+    {% for week in m.weeks %}
+    <tr>
+      {% for c in week %}
+      <td class="state-{{ c.state }} {% if not c.in_month %}out{% endif %}">
+        {% if c.state in ['green', 'amber', 'red', 'none', 'grey'] and c.in_month %}
+          <a href="/calendar/{{ c.day.isoformat() }}" title="{{ c.day }} · {{ c.label }}{% if c.score is not none %} · {{ c.score|num }}{% endif %}">
+            {{ c.day.day }}<span class="icon">{{ c.icon }}</span></a>
+        {% elif c.state == 'pending' and c.in_month %}
+          <a href="/checkin" title="Open for check-in">{{ c.day.day }}<span class="icon">{{ c.icon }}</span></a>
+        {% else %}
+          <span class="cell">{{ c.day.day }}</span>
+        {% endif %}
+      </td>
+      {% endfor %}
+    </tr>
+    {% endfor %}
+  </table>
+</div>
+{% endfor %}
+{% endblock %}

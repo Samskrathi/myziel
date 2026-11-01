@@ -1,0 +1,31 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>{% block title %}myZiel{% endblock %}</title>
+  <link rel="manifest" href="/static/manifest.webmanifest">
+  <meta name="theme-color" content="#2f6f5e">
+  <link rel="stylesheet" href="/static/css/app.css">
+</head>
+<body>
+  {% if user %}
+  <header class="topbar">
+    <a class="brand" href="/">myZiel</a>
+    <nav>
+      <a href="/checkin">Check-in</a>
+      <a href="/calendar">Calendar</a>
+      <a href="/goals">Goals</a>
+      <a href="/settings">Settings</a>
+    </nav>
+  </header>
+  {% endif %}
+  <main>
+    {% for m in messages %}
+      <div class="flash {{ m.kind }}" role="status">{{ m.text }}</div>
+    {% endfor %}
+    {% block content %}{% endblock %}
+  </main>
+  {% block scripts %}{% endblock %}
+</body>
+</html>
