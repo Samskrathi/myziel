@@ -1,0 +1,57 @@
+{% extends "base.html" %}
+{% block title %}myZiel{% endblock %}
+{% block content %}
+<h1>Today</h1>
+<div class="card">
+  {% if d.open_day and not d.open_day_done %}
+    <p>Your check-in for {{ d.open_day.strftime('%A') }} is open.</p>
+    <a class="button" href="/checkin">Check in now</a>
+  {% elif d.open_day_done %}
+    <p>✓ Checked in for {{ d.open_day.strftime('%A') }}. Nice.</p>
+  {% else %}
+    <p class="muted">The check-in window is closed. It opens again this evening.</p>
+  {% endif %}
+</div>
+
+<div class="stats">
+  <div class="card stat"><strong>{{ d.checkin_streak }}</strong><span class="muted">day check-in streak</span></div>
+  <div class="card stat"><strong>{{ d.productivity_streak }}</strong><span class="muted">green-day streak</span></div>
+</div>
+
+<div class="card">
+  <h2>Last 7 days</h2>
+  <canvas id="week" height="180" aria-label="Day score for the last 7 days" role="img"></canvas>
+  <div class="legend" style="margin-top:8px">
+    {% for day, light, score in zip(d.days, d.lights, d.scores) %}
+      <span title="{{ LABELS[light] }}"><span class="dot state-{{ light }}">{{ ICONS[light] }}</span>{{ day.strftime('%a') }}</span>
+    {% endfor %}
+  </div>
+</div>
+
+<div class="card">
+  <h2>This week (since {{ d.week_start.strftime('%a %d %b') }})</h2>
+  {% for g in d.goals %}
+    <p style="margin-bottom:4px"><strong>{{ g.title }}</strong>
+      <span class="muted">{{ g.actual|num }} / {{ g.target|num }} {{ unit_label(g.unit) }} · {{ g.percent }}%</span></p>
+    <div class="bar"><div style="width: {{ [g.percent, 100]|min }}%"></div></div>
+  {% else %}
+    <p class="muted">No active goals.</p>
+  {% endfor %}
+</div>
+{% endblock %}
+{% block scripts %}
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.4/dist/chart.umd.min.js"></script>
+<script>
+  const data = {{ chart|tojson }};
+  const css = getComputedStyle(document.documentElement);
+  const colour = l => css.getPropertyValue("--" + ({pending: "grey", future: "grey"}[l] || l)).trim();
+  if (window.Chart) {
+    new Chart(document.getElementById("week"), {
+      type: "bar",
+      data: { labels: data.labels, datasets: [{ label: "Day score", data: data.scores,
+              backgroundColor: data.lights.map(colour) }] },
+      options: { scales: { y: { min: 0, max: 100 } }, plugins: { legend: { display: false } } },
+    });
+  }
+</script>
+{% endblock %}

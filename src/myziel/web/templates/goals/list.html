@@ -1,0 +1,24 @@
+{% extends "base.html" %}
+{% block title %}Goals · myZiel{% endblock %}
+{% block content %}
+<h1>Goals</h1>
+{% if not goals %}
+<div class="card">
+  <p>No goals yet. Start with 1 to 3 goals that matter most right now.</p>
+</div>
+{% endif %}
+{% for g in goals %}{% set v = g.current %}
+<div class="card">
+  <strong>{{ v.title }}</strong>
+  <span class="muted">· {{ v.status }} · v{{ v.version }}</span>
+  <p class="muted">
+    {{ v.target_value|num }} {{ v.unit }} {{ {'day':'per day','week':'per week','total':'in total'}[v.target_period] }}
+    {% if v.deadline %}by {{ v.deadline }}{% endif %}
+    → daily target {{ v.daily_target|num }}{% if v.weekdays_only %} (weekdays){% endif %}
+  </p>
+  {% if v.why %}<p>{{ v.why }}</p>{% endif %}
+  <a href="/goals/{{ g.id }}">Edit</a>
+</div>
+{% endfor %}
+<a class="button" href="/goals/new">Add goal</a>
+{% endblock %}

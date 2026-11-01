@@ -1,0 +1,13 @@
+{% extends "base.html" %}
+{% block title %}Profile · myZiel{% endblock %}
+{% block content %}
+<h1>About you</h1>
+<p class="muted">Used to shape your check-in and, later, suggestions. Changes are kept as versions.</p>
+<form method="post" action="/profile" class="card">
+  {% for key, label in questions %}
+  <div class="field"><label for="{{ key }}">{{ label }}</label>
+    <textarea id="{{ key }}" name="{{ key }}">{{ answers.get(key, '') }}</textarea></div>
+  {% endfor %}
+  <button type="submit">Save</button>
+</form>
+{% endblock %}
