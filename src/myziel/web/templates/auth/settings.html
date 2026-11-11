@@ -58,6 +58,7 @@
   <form method="post" action="/logout"><button class="secondary" type="submit">Log out</button></form>
 </div>
 
+{% if not demo_mode %}
 <form method="post" action="/account/delete" class="card"
       onsubmit="return confirm('Delete your account and ALL data permanently?');">
   <h2>Delete account</h2>
@@ -66,4 +67,5 @@
     <input id="pw" name="password" type="password" required></div>
   <button class="danger" type="submit">Delete account</button>
 </form>
+{% endif %}
 {% endblock %}

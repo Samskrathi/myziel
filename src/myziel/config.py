@@ -28,6 +28,9 @@ class Settings(BaseSettings):
     llm_monthly_budget_usd: float = 5
     vapid_private_key: str = ""
 
+    # Public demo: seeds a demo account on an empty database and lets visitors in via /demo.
+    demo_mode: bool = False
+
     log_level: str = "INFO"
     log_json: bool = False
 

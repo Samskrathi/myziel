@@ -14,6 +14,7 @@ from myziel.core.db import make_engine, make_sessionmaker
 from myziel.core.events import EventBus
 from myziel.core.logging import get_logger, setup_logging
 from myziel.core.security import LoginRateLimiter
+from myziel.demo import BLOCKED_POSTS, demo_user_id, seed_demo
 from myziel.modules.analytics.router import router as analytics_router
 from myziel.modules.auth.router import router as auth_router
 from myziel.modules.auth.service import LoginRequired
@@ -24,7 +25,7 @@ from myziel.modules.notifications.channels.email import EmailChannel
 from myziel.modules.notifications.scheduler import start_scheduler
 from myziel.modules.profile_goals.router import router as goals_router
 from myziel.modules.scoring import handlers as scoring_handlers
-from myziel.web import WEB_DIR, redirect
+from myziel.web import WEB_DIR, flash, redirect
 
 log = get_logger(__name__)
 
@@ -50,6 +51,8 @@ def create_app(
     @asynccontextmanager
     async def lifespan(app: FastAPI) -> AsyncIterator[None]:
         scheduler = None
+        if settings.demo_mode:
+            seed_demo(make_session, bus, clock.now_utc())
         if settings.scheduler_enabled:
             scheduler = start_scheduler(
                 make_session, clock, channel, settings.reminder_check_minutes
@@ -79,7 +82,28 @@ def create_app(
 
     @app.exception_handler(LoginRequired)
     async def _login_required(_request: Request, _exc: LoginRequired) -> Response:
-        return redirect("/login")
+        return redirect("/demo" if settings.demo_mode else "/login")
+
+    if settings.demo_mode:
+        @app.middleware("http")
+        async def _demo_guard(request: Request, call_next):  # type: ignore[no-untyped-def]
+            path = request.url.path
+            if path in ("/login", "/setup"):
+                return redirect("/demo")
+            if request.method == "POST" and path in BLOCKED_POSTS:
+                return redirect("/settings")
+            return await call_next(request)
+
+        @app.get("/demo", include_in_schema=False)
+        def demo_login(request: Request) -> Response:
+            with make_session() as session:
+                uid = demo_user_id(session)
+            if uid is None:
+                return Response("Demo data is not ready yet.", status_code=503)
+            request.session.clear()
+            request.session["user_id"] = uid
+            flash(request, "Welcome to the myZiel demo. Look around, and try today's check-in.")
+            return redirect("/")
 
     app.mount("/static", StaticFiles(directory=WEB_DIR / "static"), name="static")
     for r in (health_router, auth_router, goals_router, checkin_router, analytics_router):

@@ -33,8 +33,10 @@ def render(
     request: Request, name: str, status_code: int = 200, **context: Any
 ) -> HTMLResponse:
     messages = request.session.pop("flash", [])
+    demo_mode = request.app.state.settings.demo_mode
     return templates.TemplateResponse(
-        request, name, {"messages": messages, **context}, status_code=status_code
+        request, name, {"messages": messages, "demo_mode": demo_mode, **context},
+        status_code=status_code,
     )
 
 
