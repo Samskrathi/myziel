@@ -86,3 +86,7 @@ th, td { text-align: left; padding: 8px 6px; border-bottom: 1px solid var(--line
 .bar > div { height: 100%; background: var(--accent); }
 .stats { display: grid; grid-template-columns: repeat(2, 1fr); gap: 12px; }
 .stat strong { display: block; font-size: 1.6rem; }
+
+.demo-banner { padding: 8px 16px; background: var(--info-bg); border-bottom: 1px solid var(--line);
+               font-size: .85rem; text-align: center; }
+.demo-banner a { margin-left: 6px; }

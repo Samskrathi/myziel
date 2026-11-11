@@ -20,6 +20,10 @@
     </nav>
   </header>
   {% endif %}
+  {% if demo_mode %}
+  <div class="demo-banner" role="note">Demo mode: a shared sample account. Data resets when the server restarts.
+    <a href="https://github.com/Samskrathi/myziel">Source on GitHub</a></div>
+  {% endif %}
   <main>
     {% for m in messages %}
       <div class="flash {{ m.kind }}" role="status">{{ m.text }}</div>

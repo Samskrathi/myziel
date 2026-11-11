@@ -10,3 +10,6 @@ data/
 dist/
 .coverage
 htmlcov/
+
+# JetBrains IDE
+.idea/
