@@ -1,0 +1,49 @@
+{% extends "base.html" %}
+{% block title %}{{ day }} · myZiel{% endblock %}
+{% block content %}
+<h1>{{ day.strftime('%A %d %B %Y') }}</h1>
+{% if rec is none %}
+  <div class="card"><p class="muted">No check-in for this day.</p></div>
+{% else %}{% set c = rec.checkin %}
+  <div class="card">
+    {% set light = rec.score.light if rec.score else 'none' %}
+    <p><span class="dot state-{{ light }}">{{ ICONS[light] }}</span>
+      <strong>{{ rec.score.score|num if rec.score and rec.score.score is not none else '–' }}</strong> / 100 · {{ LABELS[light] }}
+      · self-rating <span class="dot state-{{ c.self_rating }}">{{ ICONS[c.self_rating] }}</span> {{ c.self_rating }}</p>
+    <p class="muted">Submitted {{ c.submitted_at_utc.strftime('%Y-%m-%d %H:%M') }} UTC{% if c.is_late %} · late{% endif %} · locked 🔒</p>
+  </div>
+  <div class="card">
+    <h2>Goals</h2>
+    <table>
+      <tr><th>Goal</th><th>Done</th><th>Target</th></tr>
+      {% for b in breakdown %}
+      <tr><td>{{ b.version.title }} <span class="muted">v{{ b.version.version }}</span></td>
+          <td>{% if b.version.unit == 'done' %}{{ 'Yes' if b.value else 'No' }}{% else %}{{ b.value|num }} {{ unit_label(b.version.unit) }}{% endif %}</td>
+          <td>{% if b.target > 0 %}{{ b.target|num }}{% else %}<span class="muted">not counted</span>{% endif %}</td></tr>
+      {% endfor %}
+    </table>
+    <h2>Day</h2>
+    <table>
+      <tr><th>Energy</th><td>{{ c.energy }} / 5</td></tr>
+      <tr><th>Mood</th><td>{{ c.mood }} / 5</td></tr>
+      <tr><th>Sleep</th><td>{{ c.sleep_hours|num }} h</td></tr>
+      <tr><th>Blocker</th><td>{{ c.blocker or '–' }}</td></tr>
+      <tr><th>Notes</th><td>{{ c.raw_text or '–' }}</td></tr>
+    </table>
+  </div>
+  <div class="card">
+    <h2>Amendments</h2>
+    {% for a in c.amendments %}
+      <p><span class="muted">{{ a.created_at.strftime('%Y-%m-%d %H:%M') }} UTC</span><br>{{ a.note }}</p>
+    {% else %}
+      <p class="muted">None.</p>
+    {% endfor %}
+    <form method="post" action="/checkin/{{ day.isoformat() }}/amend">
+      <div class="field"><label for="note">Add a correction note</label>
+        <textarea id="note" name="note" required></textarea></div>
+      <button type="submit" class="secondary">Add note</button>
+    </form>
+  </div>
+{% endif %}
+<p><a href="/calendar">← Back to calendar</a></p>
+{% endblock %}

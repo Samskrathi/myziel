@@ -1,0 +1,86 @@
+{% extends "base.html" %}
+{% block title %}{{ 'Edit' if goal else 'New' }} goal · myZiel{% endblock %}
+{% block content %}
+<h1>{{ 'Edit goal' if goal else 'New goal' }}</h1>
+{% if goal %}<p class="muted">Saving creates version {{ goal.current.version + 1 }}. Past check-ins keep the version they used.</p>{% endif %}
+<form method="post" action="{{ '/goals/%d' % goal.id if goal else '/goals/new' }}" class="card">
+  <div class="field"><label for="title">Title</label>
+    <input id="title" name="title" type="text" required value="{{ data.get('title', '') }}"
+           placeholder="Find a new job"></div>
+  <div class="field"><label for="why">Why it matters</label>
+    <textarea id="why" name="why">{{ data.get('why', '') }}</textarea></div>
+  <div class="row">
+    <div class="field"><label for="goal_type">Type</label>
+      <select id="goal_type" name="goal_type">
+        {% for val, text in [('habit','Habit (ongoing)'), ('outcome','Outcome (has a deadline)')] %}
+        <option value="{{ val }}" {% if data.get('goal_type') == val %}selected{% endif %}>{{ text }}</option>
+        {% endfor %}
+      </select></div>
+    <div class="field"><label for="priority">Priority</label>
+      <select id="priority" name="priority">
+        {% for val, text in [(3,'High'), (2,'Medium'), (1,'Low')] %}
+        <option value="{{ val }}" {% if data.get('priority', 2)|string == val|string %}selected{% endif %}>{{ text }}</option>
+        {% endfor %}
+      </select></div>
+  </div>
+  <div class="row">
+    <div class="field"><label for="metric">What you measure</label>
+      <input id="metric" name="metric" type="text" required value="{{ data.get('metric', '') }}"
+             placeholder="applications"></div>
+    <div class="field"><label for="unit">Unit</label>
+      <select id="unit" name="unit">
+        {% for val, text in [('count','Count'), ('hours','Hours'), ('minutes','Minutes'), ('done','Done / not done')] %}
+        <option value="{{ val }}" {% if data.get('unit') == val %}selected{% endif %}>{{ text }}</option>
+        {% endfor %}
+      </select></div>
+  </div>
+  <div class="row">
+    <div class="field"><label for="target_value">Target</label>
+      <input id="target_value" name="target_value" type="number" step="any" min="0" required
+             value="{{ data.get('target_value', '') }}"></div>
+    <div class="field"><label for="target_period">Per</label>
+      <select id="target_period" name="target_period">
+        {% for val, text in [('week','Week'), ('day','Day'), ('total','Total by deadline')] %}
+        <option value="{{ val }}" {% if data.get('target_period') == val %}selected{% endif %}>{{ text }}</option>
+        {% endfor %}
+      </select></div>
+  </div>
+  <div class="field"><label class="inline"><input type="checkbox" name="weekdays_only"
+    {% if data.get('weekdays_only') %}checked{% endif %}> Weekdays only (Mon–Fri)</label></div>
+  <div class="row">
+    <div class="field"><label for="deadline">Deadline</label>
+      <input id="deadline" name="deadline" type="date" value="{{ data.get('deadline') or '' }}"></div>
+    <div class="field"><label for="weekly_budget_hours">Weekly time budget (h)</label>
+      <input id="weekly_budget_hours" name="weekly_budget_hours" type="number" step="any" min="0"
+             value="{{ data.get('weekly_budget_hours') if data.get('weekly_budget_hours') is not none else '' }}"></div>
+  </div>
+  <div class="row">
+    <div class="field"><label for="daily_target_override">Daily target (optional override)</label>
+      <input id="daily_target_override" name="daily_target_override" type="number" step="any" min="0"
+             value="{{ data.get('daily_target_override') if data.get('daily_target_override') is not none else '' }}"
+             placeholder="derived automatically"></div>
+    <div class="field"><label for="status">Status</label>
+      <select id="status" name="status">
+        {% for val in ['active', 'paused', 'achieved', 'abandoned'] %}
+        <option value="{{ val }}" {% if data.get('status', 'active') == val %}selected{% endif %}>{{ val|capitalize }}</option>
+        {% endfor %}
+      </select></div>
+  </div>
+  <div class="actions">
+    <button type="submit">Save goal</button>
+    <a class="button secondary" href="/goals">Cancel</a>
+  </div>
+</form>
+{% if goal and goal.versions|length > 1 %}
+<div class="card">
+  <h2>History</h2>
+  <table>
+    <tr><th>Version</th><th>From</th><th>Daily target</th><th>Status</th></tr>
+    {% for v in goal.versions|reverse %}
+    <tr><td>v{{ v.version }}</td><td>{{ v.valid_from.strftime('%Y-%m-%d') }}</td>
+        <td>{{ v.daily_target|num }} {{ v.unit }}</td><td>{{ v.status }}</td></tr>
+    {% endfor %}
+  </table>
+</div>
+{% endif %}
+{% endblock %}

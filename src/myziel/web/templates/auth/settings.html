@@ -1,0 +1,69 @@
+{% extends "base.html" %}
+{% block title %}Settings · myZiel{% endblock %}
+{% block content %}
+<h1>Settings</h1>
+<form method="post" action="/settings" class="card">
+  <h2>Time</h2>
+  <div class="field"><label for="timezone">Timezone</label>
+    <select id="timezone" name="timezone">
+      {% for tz in timezones %}<option value="{{ tz }}" {% if tz == user.timezone %}selected{% endif %}>{{ tz }}</option>{% endfor %}
+    </select></div>
+  <div class="row">
+    <div class="field"><label for="cws">Check-in window opens</label>
+      <input id="cws" name="checkin_window_start" type="time" value="{{ s.checkin_window_start }}"></div>
+    <div class="field"><label for="cwe">Closes (next morning if earlier)</label>
+      <input id="cwe" name="checkin_window_end" type="time" value="{{ s.checkin_window_end }}"></div>
+  </div>
+
+  <h2>Reminders</h2>
+  <div class="field"><label class="inline"><input type="checkbox" name="reminder_enabled"
+    {% if s.reminder_enabled %}checked{% endif %}> Email me a check-in reminder</label></div>
+  <div class="row">
+    <div class="field"><label for="rt">Reminder time</label>
+      <input id="rt" name="reminder_time" type="time" value="{{ s.reminder_time }}"></div>
+    <div class="field"><label for="mx">Max notifications per day</label>
+      <input id="mx" type="number" value="{{ s.max_notifications_per_day }}" disabled></div>
+  </div>
+  <div class="row">
+    <div class="field"><label for="qs">Quiet hours start</label>
+      <input id="qs" name="quiet_hours_start" type="time" value="{{ s.quiet_hours_start }}"></div>
+    <div class="field"><label for="qe">Quiet hours end</label>
+      <input id="qe" name="quiet_hours_end" type="time" value="{{ s.quiet_hours_end }}"></div>
+  </div>
+
+  <h2>Scoring</h2>
+  <div class="row">
+    <div class="field"><label for="gt">Green at or above</label>
+      <input id="gt" name="green_threshold" type="number" min="1" max="100" value="{{ s.green_threshold }}"></div>
+    <div class="field"><label for="at">Amber at or above</label>
+      <input id="at" name="amber_threshold" type="number" min="1" max="99" value="{{ s.amber_threshold }}"></div>
+  </div>
+  <div class="row">
+    <div class="field"><label for="mag">Max active goals (1–5)</label>
+      <input id="mag" name="max_active_goals" type="number" min="1" max="5" value="{{ s.max_active_goals }}"></div>
+    <div class="field"><label for="cm">Calendar colours by default</label>
+      <select id="cm" name="calendar_mode">
+        <option value="score" {% if s.calendar_mode == 'score' %}selected{% endif %}>Computed score</option>
+        <option value="self" {% if s.calendar_mode == 'self' %}selected{% endif %}>My self-rating</option>
+      </select></div>
+  </div>
+  <button type="submit">Save settings</button>
+</form>
+
+<div class="card">
+  <h2>Profile</h2>
+  <p><a href="/profile">Edit your onboarding answers</a></p>
+  <h2>Your data</h2>
+  <p><a class="button secondary" href="/account/export">Download all my data (JSON)</a></p>
+  <form method="post" action="/logout"><button class="secondary" type="submit">Log out</button></form>
+</div>
+
+<form method="post" action="/account/delete" class="card"
+      onsubmit="return confirm('Delete your account and ALL data permanently?');">
+  <h2>Delete account</h2>
+  <p class="muted">Removes everything, including locked check-ins. This cannot be undone.</p>
+  <div class="field"><label for="pw">Confirm with your password</label>
+    <input id="pw" name="password" type="password" required></div>
+  <button class="danger" type="submit">Delete account</button>
+</form>
+{% endblock %}

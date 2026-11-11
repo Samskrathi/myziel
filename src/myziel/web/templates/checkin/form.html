@@ -1,0 +1,62 @@
+{% extends "base.html" %}
+{% block title %}Check-in · myZiel{% endblock %}
+{% macro scale(name, value) %}
+<div class="scale">
+  {% for i in range(1, 6) %}
+  <label><input type="radio" name="{{ name }}" value="{{ i }}" required
+    {% if value|string == i|string %}checked{% endif %}><span>{{ i }}</span></label>
+  {% endfor %}
+</div>
+{% endmacro %}
+{% block content %}
+{% if ctx.day is none %}
+  <h1>Check-in</h1>
+  <div class="card">
+    <p>The check-in window is closed right now.</p>
+    <p class="muted">Next window opens {{ ctx.opens_at.strftime('%A %H:%M') }}.</p>
+  </div>
+{% elif ctx.already_submitted %}
+  <h1>Check-in</h1>
+  <div class="card">
+    <p>You already checked in for {{ ctx.day.strftime('%A %d %B') }}.</p>
+    <a href="/calendar/{{ ctx.day.isoformat() }}">View it</a>
+  </div>
+{% else %}
+  <h1>Check-in for {{ ctx.day.strftime('%A %d %B') }}</h1>
+  {% if ctx.is_late %}<p class="flash">This check-in is for yesterday and will be marked as late.</p>{% endif %}
+  <form method="post" action="/checkin/review" class="card">
+    {% for q in ctx.questions %}
+    <div class="field">
+      {% if q.unit == 'done' %}
+        <label class="inline"><input type="checkbox" name="{{ q.key }}" value="1"
+          {% if form.get(q.key) in ('1', 'on') %}checked{% endif %}> {{ q.label }}</label>
+      {% else %}
+        <label for="{{ q.key }}">{{ q.label }}</label>
+        <input id="{{ q.key }}" name="{{ q.key }}" type="number" step="any" min="0" inputmode="decimal"
+               value="{{ form.get(q.key, '') }}" placeholder="0">
+      {% endif %}
+      <p class="muted">{% if q.target > 0 %}Today's target: {{ q.target|num }} {{ unit_label(q.unit) }}{% else %}Not counted today{% endif %}</p>
+    </div>
+    {% endfor %}
+    {% if not ctx.questions %}<p class="muted">No active goals. <a href="/goals">Add one</a> to get scored.</p>{% endif %}
+
+    <div class="field"><label>Energy today (1 = drained, 5 = great)</label>{{ scale('energy', form.get('energy')) }}</div>
+    <div class="field"><label>Mood (1 = low, 5 = great)</label>{{ scale('mood', form.get('mood')) }}</div>
+    <div class="field"><label for="sleep_hours">Hours slept last night</label>
+      <input id="sleep_hours" name="sleep_hours" type="number" step="0.25" min="0" max="24"
+             inputmode="decimal" value="{{ form.get('sleep_hours', '') }}"></div>
+    <div class="field"><label for="blocker">Main blocker (optional)</label>
+      <input id="blocker" name="blocker" type="text" value="{{ form.get('blocker', '') }}"></div>
+    <div class="field"><label for="raw_text">Anything else about today?</label>
+      <textarea id="raw_text" name="raw_text">{{ form.get('raw_text', '') }}</textarea></div>
+    <div class="field"><label>How would you rate today yourself?</label>
+      <div class="scale">
+        {% for val, text in [('green','● Good'), ('amber','▲ Mixed'), ('red','■ Poor')] %}
+        <label><input type="radio" name="self_rating" value="{{ val }}" required
+          {% if form.get('self_rating') == val %}checked{% endif %}><span>{{ text }}</span></label>
+        {% endfor %}
+      </div></div>
+    <button type="submit">Review answers</button>
+  </form>
+{% endif %}
+{% endblock %}

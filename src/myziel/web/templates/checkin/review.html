@@ -1,0 +1,30 @@
+{% extends "base.html" %}
+{% block title %}Review check-in · myZiel{% endblock %}
+{% block content %}
+<h1>Review {{ ctx.day.strftime('%A %d %B') }}</h1>
+<p class="flash">Once you submit, this check-in is locked. Later corrections can only be added as notes.</p>
+<div class="card">
+  <table>
+    {% for q in ctx.questions %}{% set v = answers.goal_values.get(q.goal_version_id, 0) %}
+    <tr><th>{{ q.label }}</th>
+        <td>{% if q.unit == 'done' %}{{ 'Yes' if v else 'No' }}{% else %}{{ v|num }} {{ unit_label(q.unit) }}{% endif %}
+          {% if q.target > 0 %}<span class="muted">/ {{ q.target|num }}</span>{% endif %}</td></tr>
+    {% endfor %}
+    <tr><th>Energy</th><td>{{ answers.energy }} / 5</td></tr>
+    <tr><th>Mood</th><td>{{ answers.mood }} / 5</td></tr>
+    <tr><th>Sleep</th><td>{{ answers.sleep_hours|num }} h</td></tr>
+    <tr><th>Blocker</th><td>{{ answers.blocker or '–' }}</td></tr>
+    <tr><th>Notes</th><td>{{ answers.raw_text or '–' }}</td></tr>
+    <tr><th>Self-rating</th><td><span class="dot state-{{ answers.self_rating }}">{{ ICONS[answers.self_rating] }}</span> {{ answers.self_rating }}</td></tr>
+  </table>
+</div>
+<form method="post" action="/checkin/submit">
+  {% for k, v in form.items() %}{% if k != 'action' %}
+  <input type="hidden" name="{{ k }}" value="{{ v }}">
+  {% endif %}{% endfor %}
+  <div class="actions">
+    <button type="submit" name="action" value="submit">Submit and lock</button>
+    <button type="submit" name="action" value="edit" class="secondary">Change answers</button>
+  </div>
+</form>
+{% endblock %}
